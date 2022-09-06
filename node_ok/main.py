@@ -7,12 +7,16 @@ import docker
 def clean_invalid_containers(cli):
     print(datetime.datetime.now())
     containers = cli.containers.list()
+
     all_ips = set()
-    tor_containers = list(filter(lambda c: c.image.tags[0] == "dperson/torproxy:latest", containers))
+
+    tor_containers = list(filter(
+        lambda c: c.image.tags and c.image.tags[0] == "dperson/torproxy:amd64", containers))
     good = 0
     for container in tor_containers:
         try:
-            res = container.exec_run("curl ifconfig.me -s --connect-timeout 1 -x localhost:8118")
+            res = container.exec_run(
+                "curl ifconfig.me -s --connect-timeout 1 -x localhost:8118")
             if res.exit_code != 0:
                 print(f"Invalid exit code: -> killing '{container.name}'")
                 container.kill()
